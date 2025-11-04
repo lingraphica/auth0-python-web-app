@@ -16,7 +16,6 @@ if ENV_FILE:
 app = Flask(__name__)
 app.secret_key = env.get("APP_SECRET_KEY")
 
-
 oauth = OAuth(app)
 
 oauth.register(
@@ -31,26 +30,48 @@ oauth.register(
 
 
 # Controllers API
+@app.route("/callback", methods=["GET", "POST"])
+def callback():
+    print("=" * 50)
+    print("🔍 CALLBACK ROUTE HIT!")
+    print("=" * 50)
+    
+    try:
+        token = oauth.auth0.authorize_access_token()
+        print("✅ Token received:", token)
+        
+        session.permanent = True
+        session["user"] = token
+        session["access_token"] = token.get("access_token")
+        
+        print("✅ Session user set:", session.get("user") is not None)
+        
+    except Exception as e:
+        print("❌ ERROR in callback:", str(e))
+        import traceback
+        traceback.print_exc()
+        return f"Error: {str(e)}", 500
+    
+    return redirect("/")
+
+
 @app.route("/")
 def home():
     return render_template(
         "home.html",
         session=session.get("user"),
         pretty=json.dumps(session.get("user"), indent=4),
+        access_token=session.get("access_token"),
     )
-
-
-@app.route("/callback", methods=["GET", "POST"])
-def callback():
-    token = oauth.auth0.authorize_access_token()
-    session["user"] = token
-    return redirect("/")
 
 
 @app.route("/login")
 def login():
+    # ← ADD AUDIENCE PARAMETER HERE - This is critical!
+    audience = env.get("AUTH0_AUDIENCE")
     return oauth.auth0.authorize_redirect(
-        redirect_uri=url_for("callback", _external=True)
+        redirect_uri=url_for("callback", _external=True),
+        audience=audience  # ← Add this!
     )
 
 
