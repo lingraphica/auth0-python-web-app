@@ -20,7 +20,11 @@
     <div>
         <h3>Your Bearer Token:</h3>
         <textarea style="width: 100%; height: 100px;">{{ access_token }}</textarea>
-        <p>Use this in your GraphQL calls with header: <code>Authorization: Bearer {{ access_token }}</code></p>
+
+        <h3>For GraphQL Playground HTTP Headers:</h3>
+        <textarea
+            style="width: 100%; height: 80px; font-family: monospace;">{ "Authorization": "Bearer {{ access_token }}" }</textarea>
+        <p><small>Copy the JSON above and paste it into the "HTTP Headers" section in GraphQL Playground</small></p>
     </div>
     {% endif %}
 </body>
